@@ -1,0 +1,89 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+version: 2
+
+project_name: container-compose
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: container-compose
+    main: ./cmd/container-compose
+    binary: container-compose
+    env:
+      - CGO_ENABLED=0
+    # Apple container only runs on Apple silicon Macs.
+    goos: [darwin]
+    goarch: [arm64]
+    flags: [-trimpath]
+    ldflags:
+      - -s -w -X github.com/pedrospdc/apple-container-compose/internal/compose.Version={{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
+      - "^chore:"
+
+release:
+  github:
+    owner: pedrospdc
+    name: apple-container-compose
+  footer: |
+    **Install**
+
+    ```sh
+    brew install pedrospdc/tap/container-compose
+    # or
+    curl -fsSL https://raw.githubusercontent.com/pedrospdc/apple-container-compose/main/install.sh | sh
+    ```
+
+homebrew_casks:
+  - name: container-compose
+    repository:
+      owner: pedrospdc
+      name: homebrew-tap
+      branch: main
+      git:
+        url: "git@github.com:pedrospdc/homebrew-tap.git"
+        private_key: "{{ .Env.HOMEBREW_TAP_DEPLOY_KEY }}"
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+    commit_msg_template: "container-compose {{ .Tag }}"
+    directory: Casks
+    homepage: https://github.com/pedrospdc/apple-container-compose
+    description: Docker Compose for Apple container
+    dependencies:
+      - formula: container
+    caveats: |
+      container-compose drives Apple container. Start its services once with:
+        container system start
+
+      To make Makefiles and scripts that call `docker-compose` use it, run:
+        container-compose alias
+    hooks:
+      post:
+        # The binary isn't notarized; drop the quarantine flag Homebrew sets.
+        install_steps: |
+          on_macos do
+            run "/usr/bin/xattr", args: ["-dr", "com.apple.quarantine", "{{ .StagedPath }}/container-compose"]
+          end
