@@ -29,6 +29,9 @@ curl -fsSL https://raw.githubusercontent.com/pedrospdc/apple-container-compose/m
 
 # From source (Go 1.24+)
 make build   # -> ./bin/container-compose
+
+# Nix
+nix profile install github:pedrospdc/apple-container-compose
 ```
 
 Then start the runtime once and verify:

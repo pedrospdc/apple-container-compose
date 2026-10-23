@@ -30,6 +30,9 @@ curl -fsSL https://raw.githubusercontent.com/pedrospdc/apple-container-compose/m
 
 # or from source (Go 1.24+)
 make build && make install
+
+# or with Nix
+nix profile install github:pedrospdc/apple-container-compose
 ```
 
 Then start the runtime once (and after each reboot): `container system start`.
