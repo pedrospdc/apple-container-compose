@@ -1,0 +1,10 @@
+#!/bin/sh
+# Minimal stand-in for Apple's `container` CLI, for CI runners without it.
+# Read-only queries return empty state; everything else is a no-op.
+case "$1 $2" in
+  "list "* | "ls "*) echo "[]" ;;
+  "network list" | "volume list" | "image list") echo "[]" ;;
+  "image inspect" | "inspect "*) echo "Error: notFound" >&2; exit 1 ;;
+  "--version "*) echo "container CLI version 0.0.0 (fake)" ;;
+esac
+exit 0

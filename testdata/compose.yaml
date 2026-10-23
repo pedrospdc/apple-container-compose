@@ -1,0 +1,24 @@
+# Sample used by CI smoke tests and as a quick local check.
+name: smoke
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
+  web:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    sysctls:
+      net.core.somaxconn: 1024
+volumes:
+  dbdata:

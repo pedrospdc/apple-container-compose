@@ -1,0 +1,32 @@
+name: Release
+
+# Push a tag like v1.2.3 to publish a GitHub release and update the
+# Homebrew cask in pedrospdc/homebrew-tap.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # Pure Go with CGO disabled: darwin/arm64 cross-compiles fine on Linux.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: goreleaser/goreleaser-action@v6
+        with:
+          version: "~> v2"
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Write deploy key for pedrospdc/homebrew-tap.
+          HOMEBREW_TAP_DEPLOY_KEY: ${{ secrets.HOMEBREW_TAP_DEPLOY_KEY }}
